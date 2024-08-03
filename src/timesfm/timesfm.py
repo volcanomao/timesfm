@@ -101,38 +101,29 @@ def _renormalize(batch, stats):
 
 
 class TimesFm:
-  """TimesFM forecast API for inference.
+  """TimesFM 预测 API 用于推断。
 
-  This class is the scaffolding for calling TimesFM forecast. To properly use:
-    1. Create an instance with the correct hyperparameters of a TimesFM model.
-    2. Call `load_from_checkpoint` to load a compatible checkpoint.
-    3. Call `forecast` for inference.
+这个类是调用 TimesFM 预测的框架。正确使用方法：
+1. 使用 TimesFM 模型的正确超参数创建一个实例。
+2. 调用 `load_from_checkpoint` 加载兼容的检查点。
+3. 调用 `forecast` 进行推断。
 
-  Given the model size, this API does not shard the model weights for SPMD. All
-  parallelism happens on the data dimension.
+鉴于模型大小，这个 API 不会将模型权重分片用于 SPMD。所有并行性都发生在数据维度上。
 
-  Compilation happens during the first time `forecast` is called and uses the
-  `per_core_batch_size` to set and freeze the input signature. Subsequent calls
-  to `forecast` reflect the actual inference latency.
+编译发生在第一次调用 `forecast` 时，并使用 `per_core_batch_size` 设置和冻结输入签名。后续对 `forecast` 的调用反映了实际的推断延迟。
 
-  Attributes:
-    per_core_batch_size: Batch size on each core for data parallelism.
-    backend: One of "cpu", "gpu" or "tpu".
-    num_devices: Number of cores provided the backend.
-    global_batch_size: per_core_batch_size * num_devices. Each batch of
-      inference task will be padded with respect to global_batch_size to
-      minimize latency.
-    context_len: Largest context length the model allows for each decode call.
-      This technically can be any large, but practically should set to the
-      context length the checkpoint was trained with.
-    horizon_len: Forecast horizon.
-    input_patch_len: Input patch len.
-    output_patch_len: Output patch len. How many timepoints is taken from a
-      single step of autoregressive decoding. Can be set as the training horizon
-      of the checkpoint.
-    mesh_shape: Shape of the data parallelism mesh.
-    mesh_name: Names of the data parallelism mesh.
-    model_p: Configuration of the TimesFM model deduced from the hparams.
+属性：
+- per_core_batch_size：每个核心上的批量大小，用于数据并行。
+- backend：可以是 "cpu"、"gpu" 或 "tpu" 之一。
+- num_devices：提供后端的核心数量。
+- global_batch_size：per_core_batch_size * num_devices。每批推断任务将根据 global_batch_size 进行填充，以最小化延迟。
+- context_len：模型允许的每次解码调用的最大上下文长度。这在技术上可以是任何大值，但实际上应设置为检查点训练时的上下文长度。
+- horizon_len：预测的时间范围。
+- input_patch_len：输入块的长度。
+- output_patch_len：输出块的长度。从自回归解码的单步中获取多少时间点。可以设置为检查点的训练范围。
+- mesh_shape：数据并行网格的形状。
+- mesh_name：数据并行网格的名称。
+- model_p：根据超参数推断的 TimesFM 模型配置。
   """
 
   def _logging(self, s):
