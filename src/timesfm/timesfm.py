@@ -143,23 +143,20 @@ class TimesFm:
       quantiles: Sequence[float] | None = None,
       verbose: bool = True,
   ) -> None:
-    """Initializes the TimesFM forecast API.
+    """
+    初始化 TimesFM 预测 API。
 
-    Args:
-      context_len: Largest context length the model allows for each decode call.
-        This technically can be any large, but practically should set to the
-        context length the checkpoint was trained with.
-      horizon_len: Forecast horizon.
-      input_patch_len: Input patch len.
-      output_patch_len: Output patch len. How many timepoints is taken from a
-        single step of autoregressive decoding. Can be set as the training
-        horizon of the checkpoint.
-      num_layers: Number of transformer layers.
-      model_dims: Model dimension.
-      per_core_batch_size: Batch size on each core for data parallelism.
-      backend: One of "cpu", "gpu" or "tpu".
-      quantiles: list of output quantiles supported by the model.
-      verbose: Whether to print logging messages.
+    参数：
+      context_len: 模型允许的每次解码调用的最大上下文长度。技术上可以是任何大值，但实际上应设置为模型检查点训练时的上下文长度。
+      horizon_len: 预测范围。
+      input_patch_len: 输入补丁长度。
+      output_patch_len: 输出补丁长度。从自回归解码的单步中提取的时间点数量。可以设置为检查点的训练范围。
+      num_layers: Transformer 层的数量。
+      model_dims: 模型维度。
+      per_core_batch_size: 数据并行性下每个核心的批量大小。
+      backend: "cpu"、"gpu" 或 "tpu" 之一。
+      quantiles: 模型支持的输出分位数列表。
+      verbose: 是否打印日志信息。
     """
     self.per_core_batch_size = per_core_batch_size
     self.backend = backend
@@ -418,28 +415,26 @@ class TimesFm:
       forecast_context_len: int | None = None,
       return_forecast_on_context: bool = False,
   ) -> tuple[JTensor, JTensor]:
-    """Forecasts on a list of time series.
+    """
+    对时间序列列表进行预测。
 
-    Args:
-      inputs: list of time series forecast contexts. Each context time series
-        should be in a format convertible to JTensor by `jnp.array`.
-      freq: frequency of each context time series. 0 for high frequency
-        (default), 1 for medium, and 2 for low. Notice this is different from
-        the `freq` required by `forecast_on_df`.
-      window_size: window size of trend + residual decomposition. If None then
-        we do not do decomposition.
-      forecast_context_len: optional max context length.
-      return_forecast_on_context: True to return the forecast on the context
-        when available, i.e. after the first input patch.
+    参数：
+      inputs: 时间序列预测上下文的列表。
+      每个上下文时间序列应为可通过 `jnp.array` 转换为 JTensor 的格式。
+      freq: 每个上下文时间序列的频率。0 表示高频（默认），1 表示中频，2 表示低频。
+      注意这与 `forecast_on_df` 所需的 `freq` 不同。
+      window_size: 趋势 + 残差分解的窗口大小。如果为 None，则不进行分解。
+      forecast_context_len: 可选的最大上下文长度。
+      return_forecast_on_context: 如果为 True，则在可用时返回上下文上的预测，
+      即在第一个输入补丁之后。
 
-    Returns:
-    A tuple for JTensors:
-    - the mean forecast of size (# inputs, # forecast horizon),
-    - the full forecast (mean + quantiles) of size
-        (# inputs,  # forecast horizon, 1 + # quantiles).
+    返回：
+      一个包含 JTensors 的元组：
+      - 平均预测，大小为 (# inputs, # forecast horizon)；
+      - 完整预测（平均值 + 分位数），大小为 (# inputs, # forecast horizon, 1 + # quantiles)。
 
-    Raises:
-    ValueError: If the checkpoint is not properly loaded.
+    引发：
+      ValueError: 如果检查点未正确加载。
     """
     if not self._train_state or not self._model:
       raise ValueError(
@@ -553,35 +548,28 @@ class TimesFm:
       max_rows_per_col: int = 0,
       force_on_cpu: bool = False,
   ):
-    """Forecasts on a list of time series with covariates.
+    """
+    对带有协变量的时间序列列表进行预测。
 
-    To optimize inference speed, avoid string valued categorical covariates.
+    为了优化推断速度，请避免使用字符串值的分类协变量。
 
-    Args:
-      inputs: A list of time series forecast contexts. Each context time series
-        should be in a format convertible to JTensor by `jnp.array`.
-      dynamic_numerical_covariates: A dict of dynamic numerical covariates.
-      dynamic_categorical_covariates: A dict of dynamic categorical covariates.
-      static_numerical_covariates: A dict of static numerical covariates.
-      static_categorical_covariates: A dict of static categorical covariates.
-      freq: frequency of each context time series. 0 for high frequency
-        (default), 1 for medium, and 2 for low. Notice this is different from
-        the `freq` required by `forecast_on_df`.
-      window_size: window size of trend + residual decomposition. If None then
-        we do not do decomposition.
-      forecast_context_len: optional max context length.
-      xreg_mode: one of "xreg + timesfm" or "timesfm + xreg". "xreg + timesfm"
-        fits a model on the residuals of the TimesFM forecast. "timesfm + xreg"
-        fits a model on the targets then forecasts on the residuals via TimesFM.
-      normalize_xreg_target_per_input: whether to normalize the xreg target per
-        input in the given batch.
-      ridge: ridge penalty for the linear model.
-      max_rows_per_col: max number of rows per column for the linear model.
-      force_on_cpu: whether to force running on cpu for the linear model.
+    参数：
+      inputs: 时间序列预测上下文的列表。每个上下文时间序列应为可通过 `jnp.array` 转换为 JTensor 的格式。
+      dynamic_numerical_covariates: 动态数值协变量的字典。
+      dynamic_categorical_covariates: 动态分类协变量的字典。
+      static_numerical_covariates: 静态数值协变量的字典。
+      static_categorical_covariates: 静态分类协变量的字典。
+      freq: 每个上下文时间序列的频率。0 表示高频（默认），1 表示中频，2 表示低频。注意这与 `forecast_on_df` 所需的 `freq` 不同。
+      window_size: 趋势 + 残差分解的窗口大小。如果为 None，则不进行分解。
+      forecast_context_len: 可选的最大上下文长度。
+      xreg_mode: "xreg + timesfm" 或 "timesfm + xreg" 之一。"xreg + timesfm" 在 TimesFM 预测的残差上拟合模型。"timesfm + xreg" 在目标上拟合模型，然后通过 TimesFM 在残差上进行预测。
+      normalize_xreg_target_per_input: 是否在给定批次中对每个输入归一化 xreg 目标。
+      ridge: 线性模型的岭回归惩罚。
+      max_rows_per_col: 线性模型每列的最大行数。
+      force_on_cpu: 是否强制在线性模型中使用 CPU 进行计算。
 
-    Returns:
-      A tuple of two lists. The first is the outputs of the model. The second is
-      the outputs of the xreg.
+    返回：
+      包含两个列表的元组。第一个是模型的输出，第二个是 xreg 的输出。
     """
 
     # Verify and bookkeep covariates.
@@ -776,26 +764,21 @@ class TimesFm:
       num_jobs: int = 1,
       verbose: bool = True,
   ) -> pd.DataFrame:
-    """Forecasts on a list of time series.
+    """
+    对时间序列列表进行预测。
 
-    Args:
-      inputs: A pd.DataFrame of all time series. The dataframe should have a
-        `unique_id` column for identifying the time series, a `ds` column for
-        timestamps and a value column for the time series values.
-      freq: string valued `freq` of data. Notice this is different from the
-        `freq` required by `forecast`. See `freq_map` for allowed values.
-      forecast_context_len: If provided none zero, we take the last
-        `forecast_context_len` time-points from each series as the forecast
-        context instead of the `context_len` set by the model.
-      value_name: The name of the value column.
-      model_name: name of the model to be written into future df.
-      window_size: window size of trend + residual decomposition. If None then
-        we do not do decomposition.
-      num_jobs: number of parallel processes to use for dataframe processing.
-      verbose: output model states in terminal.
+    参数：
+      inputs: 包含所有时间序列的 pd.DataFrame。数据框应包含一个 `unique_id` 列用于标识时间序列，一个 `ds` 列用于时间戳，以及一个值列用于时间序列的值。
+      freq: 数据的字符串值 `freq`。注意这与 `forecast` 所需的 `freq` 不同。有关允许的值，请参见 `freq_map`。
+      forecast_context_len: 如果提供了非零值，我们将从每个序列中取最后的 `forecast_context_len` 个时间点作为预测上下文，而不是模型设定的 `context_len`。
+      value_name: 值列的名称。
+      model_name: 要写入未来数据框的模型名称。
+      window_size: 趋势 + 残差分解的窗口大小。如果为 None，则不进行分解。
+      num_jobs: 用于数据框处理的并行进程数量。
+      verbose: 在终端输出模型状态。
 
-    Returns:
-      Future forecasts dataframe.
+    返回：
+      未来的预测数据框。
     """
     if not (
         "unique_id" in inputs.columns
